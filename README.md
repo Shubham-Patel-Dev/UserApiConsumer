@@ -31,7 +31,21 @@ This will:
 
 Check `pacts/UserApiConsumer-UserApiProvider.json` to see the contract.
 
-### 3. Publish to Pact Broker (Manual)
+### 3. Publish to Pact Broker
+
+Use the publish script:
+
+```powershell
+.\publish-pact.ps1
+```
+
+Or specify a custom version:
+
+```powershell
+.\publish-pact.ps1 -Version "1.0.0"
+```
+
+Or manually:
 
 ```powershell
 # Set version (use git commit hash or version number)
@@ -41,7 +55,7 @@ $version = git rev-parse --short HEAD
 $pactFile = "pacts/UserApiConsumer-UserApiProvider.json"
 $url = "http://puvsfpactserver.tiger01-dev.ba.lab.local:9292/pacts/provider/UserApiProvider/consumer/UserApiConsumer/version/$version"
 
-curl -X PUT -H "Content-Type: application/json" -d "@$pactFile" $url
+curl.exe -X PUT -H "Content-Type: application/json" -d "@$pactFile" $url
 ```
 
 ## GitHub Actions Pipeline
@@ -49,8 +63,9 @@ curl -X PUT -H "Content-Type: application/json" -d "@$pactFile" $url
 The pipeline (`.github/workflows/consumer-pipeline.yml`) automatically:
 1. ✅ Runs contract tests
 2. 📦 Generates pact file
-3. 🚀 Publishes pact to Pact Broker
-4. 🏷️ Tags the pact with branch name
+3. � Uploads pact as artifact
+
+**Note**: Publishing to Pact Broker is done manually from your local machine since the broker is not accessible from GitHub's cloud runners. Use `.\publish-pact.ps1` after the pipeline succeeds.
 
 ### Setting Up GitHub Repository
 
