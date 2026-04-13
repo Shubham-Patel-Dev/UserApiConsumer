@@ -1,0 +1,50 @@
+{
+  "consumer": {
+    "name": "UserApiConsumer"
+  },
+  "interactions": [
+    {
+      "description": "A request to get user with id 1",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "User with id 1 exists"
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/users/1"
+      },
+      "response": {
+        "body": {
+          "content": {
+            "email": "john.doe@example.com",
+            "id": 1,
+            "name": "John Doe"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "status": 200
+      },
+      "type": "Synchronous/HTTP"
+    }
+  ],
+  "metadata": {
+    "pactRust": {
+      "ffi": "0.4.27",
+      "models": "1.2.8"
+    },
+    "pactSpecification": {
+      "version": "4.0"
+    }
+  },
+  "provider": {
+    "name": "UserApiProvider"
+  }
+}

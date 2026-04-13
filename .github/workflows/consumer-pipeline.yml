@@ -1,0 +1,63 @@
+name: Consumer Contract Tests
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  contract-test:
+    runs-on: windows-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+    
+    - name: Restore dependencies
+      run: dotnet restore
+    
+    - name: Build
+      run: dotnet build --no-restore --configuration Release
+    
+    - name: Run Contract Tests
+      run: dotnet test tests/UserApiConsumer.Tests.csproj --no-build --configuration Release --verbosity normal
+    
+    - name: Publish Pact to Broker
+      if: success()
+      shell: pwsh
+      run: |
+        # Publish all pacts in the pacts directory
+        Get-ChildItem -Path pacts -Filter *.json | ForEach-Object {
+          Write-Host "Publishing pact: $($_.Name)"
+          
+          # Using curl to publish to Pact Broker
+          $pactFile = $_.FullName
+          $pactContent = Get-Content $pactFile -Raw
+          $consumerName = "UserApiConsumer"
+          $providerName = "UserApiProvider"
+          $version = "${{ github.sha }}"
+          $branch = "${{ github.ref_name }}"
+          
+          $url = "http://puvsfpactserver.tiger01-dev.ba.lab.local:9292/pacts/provider/$providerName/consumer/$consumerName/version/$version"
+          
+          curl -X PUT `
+            -H "Content-Type: application/json" `
+            -d "$pactContent" `
+            "$url"
+          
+          # Tag the pact with the branch name
+          $tagUrl = "http://puvsfpactserver.tiger01-dev.ba.lab.local:9292/pacticipants/$consumerName/versions/$version/tags/$branch"
+          curl -X PUT "$tagUrl"
+        }
+    
+    - name: Upload Pact Files as Artifacts
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: pact-files
+        path: pacts/*.json
